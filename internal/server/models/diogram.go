@@ -4,6 +4,6 @@ type Diogram struct {
 	Data []int
 }
 
-func NewDiogram(data []int) *Diogram {
+func NewDiogram(data ...int) *Diogram {
 	return &Diogram{Data: data}
 }
