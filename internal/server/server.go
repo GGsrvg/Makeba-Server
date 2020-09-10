@@ -54,6 +54,7 @@ func (s *Server) Start() error {
 
 	s.logger.Info("starting api server")
 
+	// return http.ListenAndServeTLS(s.config.HttpsAddr, "server.crt", "server.key", s.router)
 	return http.ListenAndServe(s.config.HttpAddr, s.router)
 }
 
@@ -73,9 +74,21 @@ func (s *Server) configureRouter() {
 	// html, css, js, pdf, mp4 and more
 	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir+"/static"))))
 
-	// return web page
+	// return api
+
+	// return stats
 	s.router.HandleFunc("/", s.getIndexHandle()).Methods("GET")
-	// s.router.HandleFunc("/", s.postIndexHandle()).Methods("POST")
+
+	// return required headers
+	s.router.HandleFunc("/headers", s.getHeadersHandle()).Methods("GET")
+
+	// return settings
+	s.router.HandleFunc("/settings", s.getSettingsHandle()).Methods("GET")
+
+	// return authorize
+	// optional request
+	// should use if headers have Authorization attribute
+	s.router.HandleFunc("/authorize", s.postAuthorizeHandle()).Methods("POST")
 }
 
 func (s *Server) apiHandle() http.HandlerFunc {

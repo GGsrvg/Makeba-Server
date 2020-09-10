@@ -20,6 +20,11 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 
+		GB := " GB"
+		allSpace := strconv.FormatFloat(float64(disk.All)/float64(diskhelper.GB), 'f', 2, 64) + GB
+		availSpace := strconv.FormatFloat(float64(disk.Avail)/float64(diskhelper.GB), 'f', 2, 64) + GB
+		usedSpace := strconv.FormatFloat(float64(disk.Used)/float64(diskhelper.GB), 'f', 2, 64) + GB
+
 		arrayStatsContainer := []*models.StatsContainer{
 			models.New(
 				"Disk space",
@@ -27,7 +32,7 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 					*models.NewStatText(
 						"All",
 						*models.NewText(
-							strconv.FormatFloat(float64(disk.All)/float64(diskhelper.GB), 'f', -1, 64),
+							allSpace,
 							models.Horizontal,
 							models.Center,
 						),
@@ -35,7 +40,7 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 					*models.NewStatText(
 						"Avail",
 						*models.NewText(
-							strconv.FormatFloat(float64(disk.Avail)/float64(diskhelper.GB), 'f', -1, 64),
+							availSpace,
 							models.Horizontal,
 							models.Center,
 						),
@@ -43,7 +48,7 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 					*models.NewStatText(
 						"Used",
 						*models.NewText(
-							strconv.FormatFloat(float64(disk.Used)/float64(diskhelper.GB), 'f', -1, 64),
+							usedSpace,
 							models.Horizontal,
 							models.Center,
 						),
@@ -58,12 +63,49 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 			fmt.Println(err)
 		}
 
+		w.Header().Add("Content-Type", "application/json")
 		io.WriteString(w, string(byte))
 	}
 }
 
-func (s *Server) postIndexHandle() http.HandlerFunc {
+func (s *Server) getHeadersHandle() http.HandlerFunc {
+	headers := []string{
+		"TimeZone",
+		"CurrentDate",
+		"Locale",
+		"Authorization",
+	}
+
+	byte, err := json.Marshal(headers)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "index")
+		io.WriteString(w, string(byte))
+	}
+}
+
+func (s *Server) getSettingsHandle() http.HandlerFunc {
+
+	settings := make(map[string]string)
+
+	settings[""] = ""
+
+	byte, err := json.Marshal(settings)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, string(byte))
+	}
+}
+
+func (s *Server) postAuthorizeHandle() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "Alpha")
 	}
 }
