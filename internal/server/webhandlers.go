@@ -19,7 +19,6 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 	// fmt.Printf("Used: %.2f GB\n", float64(disk.Used)/float64(diskhelper.GB))
 
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		GB := " GB"
 		allSpace := strconv.FormatFloat(float64(disk.All)/float64(diskhelper.GB), 'f', 2, 64) + GB
 		availSpace := strconv.FormatFloat(float64(disk.Avail)/float64(diskhelper.GB), 'f', 2, 64) + GB
@@ -57,7 +56,9 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 			),
 		}
 
-		byte, err := json.Marshal(arrayStatsContainer)
+		response := models.NewRespose(nil, nil, arrayStatsContainer)
+
+		byte, err := json.Marshal(response)
 
 		if err != nil {
 			fmt.Println(err)
