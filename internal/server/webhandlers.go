@@ -30,26 +30,26 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 				[]models.Stat{
 					*models.NewStatText(
 						"All",
-						*models.NewText(
+						models.NewText(
 							allSpace,
-							models.Horizontal,
-							models.Center,
+							// models.Horizontal,
+							// models.Center,
 						),
 					),
 					*models.NewStatText(
 						"Avail",
-						*models.NewText(
+						models.NewText(
 							availSpace,
-							models.Horizontal,
-							models.Center,
+							// models.Horizontal,
+							// models.Center,
 						),
 					),
 					*models.NewStatText(
 						"Used",
-						*models.NewText(
+						models.NewText(
 							usedSpace,
-							models.Horizontal,
-							models.Center,
+							// models.Horizontal,
+							// models.Center,
 						),
 					),
 				},
