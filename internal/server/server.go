@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"makeba/internal/util"
+	"net"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -48,13 +49,9 @@ func (s *Server) Start() error {
 
 	s.configureRouter()
 
-	// if err := s.configureStore(); err != nil {
-	// 	return err
-	// }
-
 	s.logger.Info("starting api server")
+	s.logger.Info("IP: " + getOutboundIP().String())
 
-	// return http.ListenAndServeTLS(s.config.HttpsAddr, "server.crt", "server.key", s.router)
 	return http.ListenAndServe(s.config.HttpAddr, s.router)
 }
 
@@ -101,4 +98,16 @@ func (s *Server) apiHandle() http.HandlerFunc {
 		fmt.Printf("\r%s\r", b)
 		io.WriteString(w, "Api")
 	}
+}
+
+func getOutboundIP() net.IP {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
 }
