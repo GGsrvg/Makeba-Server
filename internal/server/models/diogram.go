@@ -1,9 +1,9 @@
 package models
 
 type Diogram struct {
-	Data []int
+	Items []DiogramItem
 }
 
-func NewDiogram(data ...int) *Diogram {
-	return &Diogram{Data: data}
+func NewDiogram(items ...DiogramItem) *Diogram {
+	return &Diogram{Items: items}
 }
