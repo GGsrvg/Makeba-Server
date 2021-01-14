@@ -1,11 +1,7 @@
 package server
 
 import (
-	"fmt"
-	"io"
-	"io/ioutil"
 	"log"
-	"makeba/internal/util"
 	"net"
 	"net/http"
 
@@ -13,29 +9,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var (
-	dir string
-)
-
-func init() {
-	cdir, err := util.CurrentDir()
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	dir = cdir
-}
-
 type Server struct {
+	dir    string
 	config *Config
 	logger *logrus.Logger
 	router *mux.Router
 	// store  *store.Store
 }
 
-func New(config *Config) *Server {
+func New(dir string, config *Config) *Server {
 	return &Server{
+		dir:    dir,
 		config: config,
 		logger: logrus.New(),
 		router: mux.NewRouter(),
@@ -69,7 +53,7 @@ func (s *Server) configureLogger() error {
 func (s *Server) configureRouter() {
 	// return static files
 	// html, css, js, pdf, mp4 and more
-	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(dir+"/static"))))
+	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(s.dir+"/static"))))
 
 	// return api
 
@@ -77,28 +61,26 @@ func (s *Server) configureRouter() {
 	s.router.HandleFunc("/", s.getIndexHandle()).Methods("GET")
 
 	// return required headers
-	s.router.HandleFunc("/headers", s.getHeadersHandle()).Methods("GET")
+	// s.router.HandleFunc("/headers", s.getHeadersHandle()).Methods("GET")
 
 	// return settings
-	s.router.HandleFunc("/settings", s.getSettingsHandle()).Methods("GET")
+	// s.router.HandleFunc("/settings", s.getSettingsHandle()).Methods("GET")
 
-	// return authorize
-	// optional request
-	// should use if headers have Authorization attribute
-	s.router.HandleFunc("/authorize", s.postAuthorizeHandle()).Methods("POST")
+	// return token authorize if need request success
+	s.router.HandleFunc("/authorize/", s.postAuthorizeHandle()).Methods("POST")
 }
 
-func (s *Server) apiHandle() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		b, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			panic(err)
-		}
+// func (s *Server) apiHandle() http.HandlerFunc {
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		b, err := ioutil.ReadAll(r.Body)
+// 		if err != nil {
+// 			panic(err)
+// 		}
 
-		fmt.Printf("\r%s\r", b)
-		io.WriteString(w, "Api")
-	}
-}
+// 		fmt.Printf("\r%s\r", b)
+// 		io.WriteString(w, "Api")
+// 	}
+// }
 
 func getOutboundIP() *net.IP {
 	conn, err := net.Dial("udp", "8.8.8.8:80")

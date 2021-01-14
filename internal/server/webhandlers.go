@@ -4,94 +4,48 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"makeba/internal/diskhelper"
+	"makeba/internal/server/mocks"
 	"makeba/internal/server/models"
+	"makeba/internal/server/models/authorization"
+	"makeba/internal/server/models/headers"
 	"net/http"
-	"strconv"
 )
+
+var (
+	token string
+)
+
+func init() {
+	token = "V3R1_S3CR3T_T0K3N"
+}
 
 // return list data
 func (s *Server) getIndexHandle() http.HandlerFunc {
-
-	disk := diskhelper.DiskUsage("/")
-	// fmt.Printf("All: %.2f GB\n", float64(disk.All)/float64(diskhelper.GB))
-	// fmt.Printf("Avail: %.2f GB\n", float64(disk.Avail)/float64(diskhelper.GB))
-	// fmt.Printf("Used: %.2f GB\n", float64(disk.Used)/float64(diskhelper.GB))
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		GB := " GB"
-		allSpace := strconv.FormatFloat(float64(disk.All)/float64(diskhelper.GB), 'f', 2, 64) + GB
-		availSpace := strconv.FormatFloat(float64(disk.Avail)/float64(diskhelper.GB), 'f', 2, 64) + GB
-		usedSpace := strconv.FormatFloat(float64(disk.Used)/float64(diskhelper.GB), 'f', 2, 64) + GB
 
-		arrayStatsContainer := []*models.StatsContainer{
-			models.New(
-				"Disk space",
-				[]models.Stat{
-					*models.NewStatText(
-						"All",
-						models.NewText(
-							allSpace,
-							// models.Horizontal,
-							// models.Center,
-						),
-					),
-					*models.NewStatText(
-						"Avail",
-						models.NewText(
-							availSpace,
-							// models.Horizontal,
-							// models.Center,
-						),
-					),
-					*models.NewStatText(
-						"Used",
-						models.NewText(
-							usedSpace,
-							// models.Horizontal,
-							// models.Center,
-						),
-					),
-				},
-			),
-			models.New(
-				"Diograms",
-				[]models.Stat{
-					*models.NewStatDiogram(
-						"TIOBE Index for November 2020",
-						models.NewDiagram(
-							*models.NewDiagramItem(
-								"C",
-								*models.NewColor(149, 219, 72),
-								10,
-							),
-							*models.NewDiagramItem(
-								"Python",
-								*models.NewColor(68, 238, 242),
-								10,
-							),
-							*models.NewDiagramItem(
-								"Java",
-								*models.NewColor(242, 177, 68),
-								10,
-							),
-							*models.NewDiagramItem(
-								"C++",
-								*models.NewColor(232, 65, 123),
-								10,
-							),
-							*models.NewDiagramItem(
-								"Other",
-								*models.NewColor(123, 49, 245),
-								10,
-							),
-						),
-					),
-				},
-			),
+		_, err := headers.DetectBaseHeader(&r.Header)
+
+		var response *models.Response
+
+		if err != nil {
+			errorMessage := err.Error()
+			response = models.NewRespose(nil, &errorMessage, nil)
+
+			w.WriteHeader(http.StatusUnauthorized)
+		} else {
+			arrayStatsContainer := []*models.StatsContainer{
+				models.New(
+					"Disk space",
+					mocks.GetDiskSpace(),
+				),
+				models.New(
+					"Diograms",
+					mocks.GetDiagram(),
+				),
+			}
+
+			response = models.NewRespose(nil, nil, arrayStatsContainer)
 		}
-
-		response := models.NewRespose(nil, nil, arrayStatsContainer)
 
 		byte, err := json.Marshal(response)
 
@@ -104,44 +58,65 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 	}
 }
 
-func (s *Server) getHeadersHandle() http.HandlerFunc {
-	headers := []string{
-		"TimeZone",
-		"CurrentDate",
-		"Locale",
-		"Authorization",
-	}
+// P.S. NOT NEED
+// func (s *Server) getHeadersHandle() http.HandlerFunc {
+// 	headers := []string{
+// 		"TimeZone",
+// 		"Locale",
+// 		"Authorization",
+// 	}
 
-	byte, err := json.Marshal(headers)
+// 	byte, err := json.Marshal(headers)
 
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, string(byte))
-	}
-}
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		io.WriteString(w, string(byte))
+// 	}
+// }
 
-func (s *Server) getSettingsHandle() http.HandlerFunc {
+// func (s *Server) getSettingsHandle() http.HandlerFunc {
 
-	settings := make(map[string]string)
+// 	settings := make(map[string]string)
 
-	settings[""] = ""
+// 	settings[""] = ""
 
-	byte, err := json.Marshal(settings)
+// 	byte, err := json.Marshal(settings)
 
-	if err != nil {
-		fmt.Println(err)
-	}
+// 	if err != nil {
+// 		fmt.Println(err)
+// 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, string(byte))
-	}
-}
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		io.WriteString(w, string(byte))
+// 	}
+// }
 
 func (s *Server) postAuthorizeHandle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		io.WriteString(w, "Alpha")
+		decoder := json.NewDecoder(r.Body)
+		var authorize authorization.AuthorizationRequest
+		err := decoder.Decode(&authorize)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		if authorize.Login != "I" {
+			io.WriteString(w, "Login not correct")
+		} else if authorize.Password != "123" {
+			io.WriteString(w, "Login or Password not correct")
+		} else {
+			response := authorization.NewAuthorizationResponse(token)
+			byte, err := json.Marshal(response)
+
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			w.Header().Add("Content-Type", "application/json")
+			io.WriteString(w, string(byte))
+		}
 	}
 }

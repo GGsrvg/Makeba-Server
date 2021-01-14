@@ -2,9 +2,11 @@ package models
 
 type Stat struct {
 	Title string
+
 	// the following attributes only one of them can have a value
-	Text    *Text
-	Diagram *Diagram
+	Text     *Text
+	Diagram  *Diagram
+	Document *Document
 }
 
 func NewStatText(title string, model *Text) *Stat {
