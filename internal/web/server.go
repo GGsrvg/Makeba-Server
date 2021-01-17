@@ -1,7 +1,6 @@
 package web
 
 import (
-	"io"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -51,10 +50,10 @@ func (s *Server) configureLogger() error {
 func (s *Server) configureRouter() {
 	// return static files
 	// html, css, js, pdf, mp4 and more
-	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir(s.dir+"/static"))))
+	s.router.PathPrefix("/static/").Handler(http.StripPrefix("/static", http.FileServer(http.Dir(s.dir+"/internal/web/static"))))
 
 	s.router.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "application/json")
-		io.WriteString(w, "I Leave!")
+		w.Header().Add("Content-Type", "text/html; charset=utf-8")
+		http.ServeFile(w, r, "./internal/web/static/html/main.html")
 	}).Methods("GET")
 }
