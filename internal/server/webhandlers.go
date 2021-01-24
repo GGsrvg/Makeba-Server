@@ -22,6 +22,7 @@ func init() {
 // return list data
 func (s *Server) getIndexHandle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 
 		_, err := headers.DetectBaseHeader(&r.Header)
 
@@ -53,7 +54,6 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 			fmt.Println(err)
 		}
 
-		w.Header().Add("Content-Type", "application/json")
 		io.WriteString(w, string(byte))
 	}
 }
@@ -96,18 +96,17 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 
 func (s *Server) postAuthorizeHandle() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
 		decoder := json.NewDecoder(r.Body)
 		var authorize authorization.AuthorizationRequest
+
 		err := decoder.Decode(&authorize)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		if authorize.Login != "I" {
-			io.WriteString(w, "Login not correct")
-		} else if authorize.Password != "123" {
-			io.WriteString(w, "Login or Password not correct")
-		} else {
+		if authorize.Login == "I" && authorize.Password == "123" {
 			response := authorization.NewAuthorizationResponse(token)
 			byte, err := json.Marshal(response)
 
@@ -115,8 +114,11 @@ func (s *Server) postAuthorizeHandle() http.HandlerFunc {
 				fmt.Println(err)
 			}
 
-			w.Header().Add("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
 			io.WriteString(w, string(byte))
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			io.WriteString(w, "Login or Password not correct")
 		}
 	}
 }
