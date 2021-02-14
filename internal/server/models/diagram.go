@@ -1,9 +1,12 @@
 package models
 
 type Diagram struct {
+	Type  DiargamType
 	Items []DiagramItem
 }
 
-func NewDiagram(items ...DiagramItem) *Diagram {
-	return &Diagram{Items: items}
+func NewDiagram(diagramType DiargamType, items ...DiagramItem) *Diagram {
+	return &Diagram{
+		Type:  diagramType,
+		Items: items}
 }

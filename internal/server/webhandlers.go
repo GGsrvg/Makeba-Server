@@ -28,25 +28,29 @@ func (s *Server) getIndexHandle() http.HandlerFunc {
 
 		var response *models.Response
 
-		if err != nil {
-			errorMessage := err.Error()
-			response = models.NewRespose(nil, &errorMessage, nil)
+		// if err != nil {
+		// 	errorMessage := err.Error()
+		// 	response = models.NewRespose(&errorMessage, nil)
 
-			w.WriteHeader(http.StatusUnauthorized)
-		} else {
-			arrayStatsContainer := []*models.StatsContainer{
-				models.New(
-					"Disk space",
-					mocks.GetDiskSpace(),
-				),
-				models.New(
-					"Diograms",
-					mocks.GetDiagram(),
-				),
-			}
-
-			response = models.NewRespose(nil, nil, arrayStatsContainer)
+		// 	w.WriteHeader(http.StatusUnauthorized)
+		// } else {
+		arrayStatsContainer := []*models.StatsContainer{
+			models.New(
+				"Disk space",
+				mocks.GetDiskSpace(),
+			),
+			models.New(
+				"Diogram Pie",
+				mocks.GetDiagramPie(),
+			),
+			models.New(
+				"Diogram Sausage",
+				mocks.GetDiagramSausage(),
+			),
 		}
+
+		response = models.NewRespose(nil, arrayStatsContainer)
+		// }
 
 		byte, err := json.Marshal(response)
 
